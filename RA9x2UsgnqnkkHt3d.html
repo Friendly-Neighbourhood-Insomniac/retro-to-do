@@ -1,0 +1,492 @@
+<html><head><base href="https://websim.ai/retrotodo/">
+    <title>Epic 8bit Quest Tracker</title>
+    <style>
+        @font-face {
+            font-family: 'PressStart2P';
+            src: url('https://fonts.gstatic.com/s/pressstart2p/v14/e3t4euO8T-267oIAQAu6jDQyK3nVivM.woff2') format('woff2');
+            font-weight: 400;
+            font-style: normal;
+            font-display: swap;
+        }
+        
+        body {
+            margin: 0;
+            color: #fff;
+            font-family: 'PressStart2P', cursive;
+            font-size: 12px;
+            line-height: 1.5;
+            background-image: url('https://raw.githubusercontent.com/Friendly-Neighbourhood-Insomniac/retro-to-do/281e831fb85460b0774f1140b5c45afff93bea51/retroBG1.png');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+        }
+        .todo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 2rem auto;
+            max-width: 800px;
+            padding: 2rem;
+            background-color: rgba(0, 0, 0, 0.8);
+            border: 4px solid #ffcc00;
+            border-radius: 10px;
+            box-shadow: 0 0 20px #ffcc00;
+        }
+        .title {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            color: #ffcc00;
+            text-shadow: 3px 3px #ff6600, 6px 6px #ff3300;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        @keyframes glow {
+            from { text-shadow: 3px 3px #ff6600, 6px 6px #ff3300; }
+            to { text-shadow: 3px 3px #ff6600, 6px 6px #ff3300, 0 0 20px #ffcc00; }
+        }
+        .task-list {
+            width: 100%;
+            max-width: 600px;
+            background-color: rgba(51, 51, 51, 0.8);
+            padding: 1rem;
+            border: solid 4px #ffcc00;
+            border-radius: 8px;
+            box-shadow: inset 0 0 10px #ffcc00;
+        }
+        .task, .subtask {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 1rem;
+            padding: 0.8rem;
+            background-color: rgba(68, 68, 68, 0.8);
+            border-radius: 4px;
+            box-shadow: 4px 4px #ff6600;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: visible;
+        }
+        .task:hover, .subtask:hover {
+            transform: translateY(-2px);
+            box-shadow: 6px 6px #ff6600;
+        }
+        .task-content, .subtask-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .task.complete, .subtask.complete {
+            background-color: rgba(42, 42, 42, 0.8);
+            box-shadow: 2px 2px #ff6600;
+        }
+        .task.complete .task-text, .subtask.complete .subtask-text {
+            text-decoration: line-through;
+            color: #888;
+        }
+        .checkbox-wrapper {
+            position: relative;
+            width: 24px;
+            height: 24px;
+            margin-right: 1rem;
+        }
+        .checkbox-display {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 2px solid #ffcc00;
+            background-color: rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .checkbox-display::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background-color: #ffcc00;
+            transform: translate(-50%, -50%);
+            transition: all 0.3s ease;
+        }
+        .checkbox-display.checked::before {
+            width: 80%;
+            height: 80%;
+        }
+        .checkbox-display::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            color: #000;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        .checkbox-display.checked::after {
+            transform: translate(-50%, -50%) scale(1);
+        }
+        form {
+            display: flex;
+            justify-content: center;
+            margin-top: 1rem;
+            margin-bottom: 2rem;
+        }
+        input[type="text"] {
+            width: 70%;
+            padding: 0.8rem;
+            margin-right: 1rem;
+            border-radius: 4px;
+            border: solid 2px #ffcc00;
+            background-color: rgba(34, 34, 34, 0.8);
+            color: #fff;
+            font-family: 'PressStart2P', cursive;
+            font-size: 0.8rem;
+        }
+        button {
+            background-color: #ffcc00;
+            border: solid 2px #ff6600;
+            border-radius: 4px;
+            padding: 0.8rem;
+            cursor: pointer;
+            font-family: 'PressStart2P', cursive;
+            color: #000;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background-color: #ff9900;
+            transform: translateY(-2px);
+            box-shadow: 0 4px #ff6600;
+        }
+        .subtask-list {
+            margin-left: 2rem;
+            margin-top: 0.8rem;
+        }
+        .enter-active {
+            animation: fadeIn 0.5s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .subtask-input {
+            margin-top: 0.8rem;
+            margin-left: 2rem;
+        }
+        .task-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .task-actions button {
+            font-size: 0.7rem;
+            padding: 0.4rem;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: rgba(51, 51, 51, 0.8);
+            border: 2px solid #ffcc00;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+            position: relative;
+        }
+        .progress {
+            height: 100%;
+            background-color: #ffcc00;
+            transition: width 0.3s ease;
+        }
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #000;
+            font-size: 0.8rem;
+            text-shadow: 1px 1px #ffcc00;
+        }
+        @keyframes completeTask {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        @keyframes sparkle {
+            0%, 100% { opacity: 0; transform: scale(0); }
+            50% { opacity: 1; transform: scale(1); }
+        }
+        .sparkle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #ffcc00;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .tooltip {
+            position: absolute;
+            background-color: #ffcc00;
+            color: #000;
+            padding: 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            z-index: 10;
+            left: -200px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 180px;
+        }
+        .task:hover .tooltip, .subtask:hover .tooltip {
+            opacity: 1;
+        }
+        .mute-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            font-size: 0.7rem;
+            background-color: #ff6600;
+            border: 2px solid #ffcc00;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        .mute-button:hover {
+            background-color: #ff9900;
+            transform: scale(1.05);
+        }
+        .volume-control {
+            position: fixed;
+            top: 90px;
+            right: 20px;
+            width: 100px;
+            transform: rotate(-90deg);
+            transform-origin: right;
+        }
+        .volume-control input[type="range"] {
+            width: 100%;
+            -webkit-appearance: none;
+            background: transparent;
+        }
+        .volume-control input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: #ffcc00;
+            cursor: pointer;
+            margin-top: -5px;
+        }
+        .volume-control input[type="range"]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 8px;
+            cursor: pointer;
+            background: #ff6600;
+            border-radius: 4px;
+        }
+        .pixel-art-character {
+            width: 64px;
+            height: 64px;
+            background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAADkElEQVR4Xu2bS2gTURSG/5M0Sa2P+sBHFSyCCm5cKbjQjaAUwaUbQXHhyoWgoBtBEMS9uHCjO1euXLkQBEEpiKBQKbgQKvhCrI/WNslkjmc6pjHJzNw7mTuZSe8phJL0nvN9579nZm4GMcbgp8+ycxn49iPw7Ufg24/Atx+Bbz8C334Evv0IfPsR+PYj8F0xAktD69oWKJ0Blk8DsQeBdAroHwLWHABGzgO9m4HkKNC1FujfDSTGgJ5NwPB5wX0iDoyeBwZOAqt2CG5yAph6AaycA4bPAWv3A8P7BZf4CPRtA0bOAj1bBKfyf5wQ/LKzQN8uYM1hwS3+AHrGgQ0ngd6x/y0gMQJ0DQBdg0DvVmDlLmDVbiA5fBeYmgB+TAI/PwKpj8DvL0ByGJh5Dcw8B9LfgPQUMPcRSL0FZl4Bv78K5/qVLTMPzE8C6W9A6gMw+w6YfQPMvQfmPwHzX4C5D2a4xevnGX7czDTgJoDMb2BhCshMAek/QHoGWJgG0n+BxVlgYQbIzAGLc0BmHlikFjPQhTkGGd6Zck2yHBZwbLkIlvORQwzNYlG4KpyMn3NYwLFVfnQ86Zq5DHVYwLGhHkGZHnTHWIYyPOiO4QzlsEDITfUhmKEcFnBslZ+qZ44ew2EBx1b50fGka+YydKkKnI8cYnDnGEbjhKvCyfj5UhU4YUk3RI+sD8HhKVnOhipwPgprLFCFyR71IRiecFScj6IaC1SB8yGsoVgVQm6qD8EMXbIKnCCqZ44ew2EBx1b5qXjmyHsOCzi2yo+OJ10zl6FOuCZclZ+KZ44ew2EBx1b50fGka+YylMMCjq3yU/HMkfccFnBslR8dT7pmLkM5LODYKD86nnRNXYZyWMCxUX4qnjnynsMCjq3yo+NJ18xlKIcFHFvlR8eTrpnLUA4LODbKj44nXVOXoRwWcGyUn4pnjrznsIBjq/zoeNI1cxnKYQHHVvnR8aRr5jKUwwKOjfKj40nX1GUohwUcG+Wn4pkj7zks4NgqPzqedM1chnJYwLFVfnQ86Zq5DOWwgGOj/Oh40jV1GcphAcdG+al45sh7Dgs4tsqPjiddM5ehHBZwbJUfHU+6Zi5DOSzg2Cg/Op50TV2GcljAsVF+Kp458p7DAo6t8qPjSdfMZSiHBRxb5UfHk66Zy1AOCzg2yo+OJ11Tl6EcFnBslJ+KZ468/wdGSJEdpZd2dAAAAABJRU5ErkJggg==');
+            background-size: cover;
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            animation: bounce 1s infinite alternate;
+        }
+        @keyframes bounce {
+            from { transform: translateY(0px); }
+            to { transform: translateY(-10px); }
+        }
+    </style>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+<div id="app" class="todo-container">
+    <div class="title">Epic Quest Log</div>
+    <form @submit.prevent="addTask" class="add-task-form">
+        <input type="text" v-model="newTask" placeholder="Enter your epic quest..." required />
+        <button type="submit">Embark</button>
+    </form>
+    <div class="progress-bar">
+        <div class="progress" :style="{ width: progressPercentage + '%' }"></div>
+        <div class="progress-text">{{ progressPercentage }}% Completed</div>
+    </div>
+    <div class="task-list" v-if="tasks.length">
+        <transition-group name="todo" tag="div">
+            <div class="task" v-for="(task, index) in tasks" :key="task.id" :class="{complete: task.complete}" @mouseenter="setHoveredItem(task)" @mouseleave="setHoveredItem(null)">
+                <div class="task-content">
+                    <div style="display: flex; align-items: center;">
+                        <div class="checkbox-wrapper" @click="toggleComplete(task, $event)">
+                            <div class="checkbox-display"
+                                :class="{ checked: task.complete }"></div>
+                        </div>
+                        <span class="task-text">{{ task.text }}</span>
+                    </div>
+                    <div class="task-actions">
+                        <button @click="toggleSubtaskInput(task)" title="Add Sub-quest">+</button>
+                        <button @click="removeTask(index)" title="Abandon Quest">X</button>
+                    </div>
+                </div>
+                <transition name="fade">
+                    <div v-if="task.showSubtaskInput" class="subtask-input">
+                        <form @submit.prevent="addSubtask(task)">
+                            <input type="text" v-model="task.newSubtask" placeholder="Add sub-quest..." required />
+                            <button type="submit">Add</button>
+                        </form>
+                    </div>
+                </transition>
+                <div class="subtask-list" v-if="task.subtasks.length">
+                    <transition-group name="todo" tag="div">
+                        <div class="subtask" v-for="(subtask, subIndex) in task.subtasks" :key="subtask.id" :class="{complete: subtask.complete}" @mouseenter="setHoveredItem(subtask)" @mouseleave="setHoveredItem(null)">
+                            <div class="subtask-content">
+                                <div style="display: flex; align-items: center;">
+                                    <div class="checkbox-wrapper" @click="toggleComplete(subtask, $event)">
+                                        <div class="checkbox-display" :class="{ checked: subtask.complete }"></div>
+                                    </div>
+                                    <span class="subtask-text">{{ subtask.text }}</span>
+                                </div>
+                                <div>
+                                    <button @click="removeSubtask(task, subIndex)" title="Abandon Sub-quest">X</button>
+                                </div>
+                            </div>
+                        </div>
+                    </transition-group>
+                </div>
+            </div>
+        </transition-group>
+    </div>
+    <div v-else class="no-tasks">No quests yet... Your adventure awaits!</div>
+    <button class="mute-button" @click="toggleMute">{{ isMuted ? 'Unmute' : 'Mute' }}</button>
+    <div class="volume-control">
+        <input type="range" min="0" max="1" step="0.01" v-model="volume" @input="updateVolume">
+    </div>
+    <div class="pixel-art-character"></div>
+    <div class="tooltip" v-if="hoveredItem">{{ hoveredItem.complete ? 'Quest Completed!' : 'Click to complete quest' }}</div>
+</div>
+<script>
+    const { createApp } = Vue;
+    createApp({
+        data() {
+            return {
+                newTask: '',
+                tasks: [],
+                idCounter: 0,
+                isMuted: false,
+                audio: null,
+                hoveredItem: null,
+                volume: 0.5
+            }
+        },
+        computed: {
+            progressPercentage() {
+                let totalItems = 0;
+                let completedItems = 0;
+                this.tasks.forEach(task => {
+                    totalItems++;
+                    if (task.complete) completedItems++;
+                    task.subtasks.forEach(subtask => {
+                        totalItems++;
+                        if (subtask.complete) completedItems++;
+                    });
+                });
+                return totalItems === 0 ? 0 : Math.round((completedItems / totalItems) * 100);
+            }
+        },
+        mounted() {
+            this.audio = new Audio('https://github.com/Friendly-Neighbourhood-Insomniac/retro-to-do/raw/9534e27cf2b1c1fda1aa2ad5cbac9207859d6b9d/The%20Final%20Countdown%208%20Bit%20Remix%20Cover%20Version%20Tribute%20to%20Europe%20%208%20Bit%20Universe.mp3');
+            this.audio.loop = true;
+            this.audio.volume = this.volume;
+            this.audio.play().catch(error => {
+                console.log("Audio autoplay was prevented. User interaction is required to start audio playback.");
+            });
+        },
+        methods: {
+            addTask() {
+                this.tasks.push({
+                    id: this.idCounter++,
+                    text: this.newTask,
+                    complete: false,
+                    subtasks: [],
+                    showSubtaskInput: false,
+                    newSubtask: ''
+                });
+                this.newTask = "";
+                this.playSound('newQuest');
+            },
+            removeTask(index) {
+                this.tasks.splice(index, 1);
+                this.playSound('removeQuest');
+            },
+            toggleComplete(item, event) {
+                item.complete = !item.complete;
+                if (item.subtasks) {
+                    item.subtasks.forEach(subtask => {
+                        subtask.complete = item.complete;
+                    });
+                }
+                this.animateCompletion(event.target);
+                this.playSound(item.complete ? 'complete' : 'uncomplete');
+            },
+            toggleSubtaskInput(task) {
+                task.showSubtaskInput = !task.showSubtaskInput;
+                task.newSubtask = '';
+            },
+            addSubtask(task) {
+                task.subtasks.push({
+                    id: this.idCounter++,
+                    text: task.newSubtask,
+                    complete: false
+                });
+                task.newSubtask = '';
+                task.showSubtaskInput = false;
+                this.playSound('newSubquest');
+            },
+            removeSubtask(task, subIndex) {
+                task.subtasks.splice(subIndex, 1);
+                this.playSound('removeQuest');
+            },
+            animateCompletion(target) {
+                const taskElement = target.closest('.task, .subtask');
+                taskElement.style.animation = 'completeTask 0.5s';
+                setTimeout(() => {
+                    taskElement.style.animation = '';
+                }, 500);
+
+                for (let i = 0; i < 10; i++) {
+                    const sparkle = document.createElement('div');
+                    sparkle.className = 'sparkle';
+                    sparkle.style.left = `${Math.random() * 100}%`;
+                    sparkle.style.top = `${Math.random() * 100}%`;
+                    sparkle.style.animation = `sparkle ${0.5 + Math.random()}s`;
+                    taskElement.appendChild(sparkle);
+                    setTimeout(() => sparkle.remove(), 1000);
+                }
+            },
+            playSound(sound) {
+                // In a real application, you would implement actual sound playing here
+                console.log(`Playing sound: ${sound}`);
+            },
+            toggleMute() {
+                this.isMuted = !this.isMuted;
+                this.audio.muted = this.isMuted;
+            },
+            setHoveredItem(item) {
+                this.hoveredItem = item;
+            },
+            updateVolume() {
+                if (this.audio) {
+                    this.audio.volume = this.volume;
+                }
+            }
+        }
+    }).mount('#app');
+</script>
+</body>
+</html>
